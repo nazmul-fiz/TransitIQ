@@ -1,0 +1,9 @@
+# Intermediate compilation and test artifacts
+*.o
+*.obj
+test_algorithms.exe
+
+# Visual Studio / VS Code caches
+.vscode/.browse.VC.db*
+.vscode/ipch/
+*.tmp

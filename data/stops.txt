@@ -1,0 +1,24 @@
+1|Uttara|North Zone
+2|Airport|North Zone
+3|Khilkhet|North-East Zone
+4|Kuril|North-East Zone
+5|Bashundhara|East Zone
+6|Banani|North-Central Zone
+7|Gulshan-2|North-Central Zone
+8|Gulshan-1|Central Zone
+9|Mohakhali|Central Zone
+10|Badda|East Zone
+11|Rampura|East Zone
+12|Malibagh|Central-East Zone
+13|Moghbazar|Central Zone
+14|Farmgate|Central Zone
+15|Karwan-Bazar|Central Zone
+16|Shahbagh|South-Central Zone
+17|Dhanmondi|West Zone
+18|New-Market|South-West Zone
+19|Mirpur-10|North-West Zone
+20|Mirpur-1|West Zone
+21|Gabtoli|West Zone
+22|Motijheel|South Zone
+23|Sayedabad|South-East Zone
+

@@ -1,0 +1,65 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build TransitIQ (Release)",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-O2",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "src/Common.cpp",
+                "src/Graph.cpp",
+                "src/BusManager.cpp",
+                "src/DataManager.cpp",
+                "src/UI.cpp",
+                "src/App.cpp",
+                "src/main.cpp",
+                "-o",
+                "${workspaceFolder}/TransitIQ.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Compile TransitIQ using MinGW g++ C++17"
+        },
+        {
+            "type": "shell",
+            "label": "Build and Run Test Suite",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Iinclude",
+                "src/Common.cpp",
+                "src/Graph.cpp",
+                "src/BusManager.cpp",
+                "src/DataManager.cpp",
+                "src/UI.cpp",
+                "tests/test_algorithms.cpp",
+                "-o",
+                "${workspaceFolder}/test_algorithms.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "test",
+            "detail": "Compiles algorithm test suite verifying BFS and DFS"
+        }
+    ]
+}
+
