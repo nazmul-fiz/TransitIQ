@@ -3,27 +3,11 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Build TransitIQ (Release)",
-            "command": "g++",
+            "label": "Build TransitIQ (CMake Qt6)",
+            "command": "cmd",
             "args": [
-                "-std=c++17",
-                "-O2",
-                "-Wall",
-                "-Wextra",
-                "-Iinclude",
-                "src/Common.cpp",
-                "src/Graph.cpp",
-                "src/BusManager.cpp",
-                "src/DataManager.cpp",
-                "src/UI.cpp",
-                "src/App.cpp",
-                "src/GUIApp.cpp",
-                "src/main.cpp",
-                "-mwindows",
-                "-lcomctl32",
-                "-lgdi32",
-                "-o",
-                "${workspaceFolder}/TransitIQ.exe"
+                "/c",
+                "call build.bat"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -35,34 +19,18 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Compile TransitIQ Visual GUI using MinGW g++ C++17"
+            "detail": "Configures and compiles TransitIQ using CMake and Qt6"
         },
         {
             "type": "shell",
-            "label": "Build and Run Test Suite",
-            "command": "g++",
-            "args": [
-                "-std=c++17",
-                "-Wall",
-                "-Wextra",
-                "-Iinclude",
-                "src/Common.cpp",
-                "src/Graph.cpp",
-                "src/BusManager.cpp",
-                "src/DataManager.cpp",
-                "src/UI.cpp",
-                "tests/test_algorithms.cpp",
-                "-o",
-                "${workspaceFolder}/test_algorithms.exe"
-            ],
+            "label": "Run Algorithm Test Suite",
+            "command": "${workspaceFolder}/test_algorithms.exe",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [
-                "$gcc"
-            ],
+            "problemMatcher": [],
             "group": "test",
-            "detail": "Compiles algorithm test suite verifying BFS and DFS"
+            "detail": "Runs BFS and DFS automated verification test suite"
         }
     ]
 }
