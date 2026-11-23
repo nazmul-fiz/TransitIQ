@@ -540,13 +540,13 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
 
     // Apply simulated roadblock
     switch (blockOpt) {
-        case 1: graph.blockRoad(14, 15); break;
-        case 2: graph.blockRoad(2, 3);   break;
-        case 3: graph.blockRoad(4, 6);   break;
-        case 4: graph.blockRoad(9, 14);  break;
-        case 5: graph.blockRoad(19, 6);  break;
-        case 6: graph.blockRoad(12, 23); break;
-        case 7: graph.blockRoad(17, 18); break;
+        case 1: graph.blockRoad(14, 15); break; // Farmgate <-> Karwan-Bazar
+        case 2: graph.blockRoad(2, 3);   break; // Airport <-> Khilkhet
+        case 3: graph.blockRoad(4, 6);   break; // Kuril <-> Banani
+        case 4: graph.blockRoad(9, 14);  break; // Mohakhali <-> Farmgate
+        case 5: graph.blockRoad(19, 6);  break; // Mirpur-10 <-> Banani
+        case 6: graph.blockRoad(12, 23); break; // Malibagh <-> Sayedabad
+        case 7: graph.blockRoad(17, 18); break; // Dhanmondi <-> New-Market
         default: break;
     }
 
@@ -558,8 +558,9 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
     std::vector<BusRecommendation> recs;
     std::string logText = "";
 
-    std::vector<int> visitOrder;
-    std::vector<std::pair<int, int>> animEdges;
+    std::vector<int> stepNodes;
+    std::vector<std::pair<int, int>> stepEdges;
+    std::vector<QColor> stepColors;
 
     if (mode == 0) {
         // Mode 1: BFS Journey Finder
@@ -576,7 +577,7 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
             logText += "NO ROUTE FOUND!\r\nRoad closure disconnected this corridor.\r\n";
         }
 
-        // Trace for animation
+        // Trace for animation (BFS queue expansion)
         std::queue<int> q;
         std::map<int, bool> vis;
         q.push(srcId);
@@ -584,7 +585,8 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
         while (!q.empty()) {
             int curr = q.front();
             q.pop();
-            visitOrder.push_back(curr);
+            stepNodes.push_back(curr);
+            stepColors.push_back(QColor(245, 158, 11)); // Amber
             if (curr == destId) break;
 
             for (const auto& p : graph.getAllRoads()) {
@@ -594,7 +596,7 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
                     if (!vis[neighbor]) {
                         vis[neighbor] = true;
                         q.push(neighbor);
-                        animEdges.push_back({curr, neighbor});
+                        stepEdges.push_back({curr, neighbor});
                     }
                 }
             }
@@ -604,60 +606,176 @@ void QtMainWindow::executeAlgorithm(bool startAnimation) {
         graph.bfsMinimumBusTransfers(srcId, destId, busMgr.getAllBuses(), journey, false);
         mapWidget->setJourney(journey);
         logText += "BFS Minimum Bus Transfers Route:\r\n";
-        logText += "Minimizes vehicle changes across bus network.\r\n";
+        logText += "Minimizes vehicle changes across bus lines.\r\n";
+
         for (size_t leg = 0; leg < journey.size(); ++leg) {
-            logText += "• " + journey[leg].busName + " (" + graph.getStop(journey[leg].boardStopId)->name
-                     + " -> " + graph.getStop(journey[leg].alightStopId)->name + ")\r\n";
-            for (int s : journey[leg].stopsInLeg) path.push_back(s);
+            logText += QString("• Leg %1: %2 (%3 -> %4)\r\n")
+                .arg(leg + 1)
+                .arg(QString::fromStdString(journey[leg].busName))
+                .arg(QString::fromStdString(graph.getStop(journey[leg].boardStopId)->name))
+                .arg(QString::fromStdString(graph.getStop(journey[leg].alightStopId)->name))
+                .toStdString();
+
+            QColor legColor = (leg == 0) ? QColor(34, 195, 240) : QColor(217, 70, 239);
+            for (size_t i = 0; i < journey[leg].stopsInLeg.size(); ++i) {
+                int sId = journey[leg].stopsInLeg[i];
+                stepNodes.push_back(sId);
+                stepColors.push_back(legColor);
+                if (path.empty() || path.back() != sId) {
+                    path.push_back(sId);
+                }
+                if (i + 1 < journey[leg].stopsInLeg.size()) {
+                    stepEdges.push_back({sId, journey[leg].stopsInLeg[i + 1]});
+                }
+            }
         }
+        mapWidget->setPath(path);
     } else if (mode == 2) {
-        // Mode 3: BFS Reachability
+        // Mode 3: BFS Reachability Explorer
         std::vector<std::pair<int, int>> reachables;
         graph.bfsAllReachable(srcId, -1, reachables, false);
         mapWidget->setReachable(reachables);
-        logText += "BFS Reachable Stops from " + graph.getStop(srcId)->name + ":\r\n";
+
+        logText += QString("BFS Reachable Stops from %1:\r\n")
+            .arg(QString::fromStdString(graph.getStop(srcId)->name))
+            .toStdString();
+
+        QColor hopColors[] = {
+            QColor(245, 158, 11), // Hop 0 (Origin)
+            QColor(16, 185, 129), // Hop 1 (Green)
+            QColor(34, 195, 240), // Hop 2 (Cyan)
+            QColor(168, 85, 247), // Hop 3 (Purple)
+            QColor(236, 72, 153)  // Hop 4+ (Pink)
+        };
+
         for (const auto& item : reachables) {
-            logText += "Hop " + std::to_string(item.second) + ": " + graph.getStop(item.first)->name + "\r\n";
-            visitOrder.push_back(item.first);
+            logText += QString("• Level %1: %2\r\n")
+                .arg(item.second)
+                .arg(QString::fromStdString(graph.getStop(item.first)->name))
+                .toStdString();
+
+            stepNodes.push_back(item.first);
+            stepColors.push_back(hopColors[std::min(item.second, 4)]);
+        }
+
+        // Add tree edges for animation
+        for (size_t i = 1; i < stepNodes.size(); ++i) {
+            stepEdges.push_back({srcId, stepNodes[i]});
         }
     } else if (mode == 3) {
-        // Mode 4: DFS Explorer
-        graph.dfsExplore(srcId, visitOrder, false);
+        // Mode 4: DFS Network Explorer
+        std::vector<int> dfsOrder;
+        graph.dfsExplore(srcId, dfsOrder, false);
         logText += "DFS Deep Corridor Exploration:\r\n";
-        logText += "Recursively explores corridors until dead ends.\r\n";
-        for (int v : visitOrder) {
-            path.push_back(v);
-            logText += "-> " + graph.getStop(v)->name + "\r\n";
+        logText += "Deeply walks corridors until dead ends before backtracking.\r\n";
+
+        for (size_t i = 0; i < dfsOrder.size(); ++i) {
+            int sId = dfsOrder[i];
+            path.push_back(sId);
+            stepNodes.push_back(sId);
+            stepColors.push_back(QColor(249, 115, 22)); // Orange
+            logText += QString("-> %1\r\n").arg(QString::fromStdString(graph.getStop(sId)->name)).toStdString();
+            if (i + 1 < dfsOrder.size()) {
+                stepEdges.push_back({sId, dfsOrder[i + 1]});
+            }
         }
         mapWidget->setPath(path);
     } else if (mode == 4) {
-        // Mode 5: DFS Components
+        // Mode 5: DFS Components & Isolated Stops
         auto comps = graph.dfsFindConnectedComponents();
         mapWidget->setComponents(comps);
-        logText += "DFS Connected Components Analysis:\r\n";
-        logText += "Total subgraphs: " + std::to_string(comps.size()) + "\r\n";
+        logText += "DFS Connected Components Topology:\r\n";
+        logText += QString("Total Subgraphs: %1\r\n\r\n").arg(comps.size()).toStdString();
+
+        QColor compColors[] = {
+            QColor(34, 195, 240), QColor(168, 85, 247),
+            QColor(16, 185, 129), QColor(245, 158, 11)
+        };
+
         for (size_t c = 0; c < comps.size(); ++c) {
             if (comps[c].size() == 1) {
-                logText += "⚠️ Isolated Stop: " + graph.getStop(comps[c][0])->name + "\r\n";
+                logText += QString("⚠️ Isolated Stop: %1\r\n")
+                    .arg(QString::fromStdString(graph.getStop(comps[c][0])->name))
+                    .toStdString();
+                stepNodes.push_back(comps[c][0]);
+                stepColors.push_back(QColor(239, 68, 68)); // Red for isolated
+            } else {
+                logText += QString("Component #%1 (%2 stops)\r\n")
+                    .arg(c + 1)
+                    .arg(comps[c].size())
+                    .toStdString();
+                for (int sId : comps[c]) {
+                    stepNodes.push_back(sId);
+                    stepColors.push_back(compColors[c % 4]);
+                }
             }
         }
     } else if (mode == 5) {
         // Mode 6: DFS Closure Impact
         auto report = graph.dfsAnalyzeClosureImpact(srcId, destId, busMgr.getAllBuses());
         mapWidget->setClosureReport(report);
-        logText += "DFS Road Closure & Bottleneck Report:\r\n";
-        logText += "Closed Road: " + report.nameU + " <-> " + report.nameV + "\r\n";
-        logText += "Bridge status: " + std::string(report.isCriticalBridge ? "CRITICAL BOTTLENECK!" : "Redundant bypass exists.") + "\r\n";
         path = report.alternativeRoute;
+
+        logText += "DFS Road Closure & Bottleneck Report:\r\n";
+        logText += QString("Closed Corridor: %1 <-> %2\r\n")
+            .arg(QString::fromStdString(report.nameU))
+            .arg(QString::fromStdString(report.nameV))
+            .toStdString();
+
+        if (report.isCriticalBridge) {
+            logText += "⚠️ CRITICAL BOTTLENECK / BRIDGE DETECTED!\r\n";
+            logText += QString("Closing splits network into %1 disconnected parts.\r\n").arg(report.componentsAfter).toStdString();
+        } else {
+            logText += "✓ Network remains connected.\r\n";
+            logText += "Redundant alternative bypass route found!\r\n";
+        }
+
+        // Animation shows closed road, then bypass detour
+        stepNodes.push_back(srcId);
+        stepColors.push_back(QColor(239, 68, 68));
+        stepNodes.push_back(destId);
+        stepColors.push_back(QColor(239, 68, 68));
+        stepEdges.push_back({srcId, destId});
+
+        for (size_t i = 0; i < report.alternativeRoute.size(); ++i) {
+            stepNodes.push_back(report.alternativeRoute[i]);
+            stepColors.push_back(QColor(16, 185, 129));
+            if (i + 1 < report.alternativeRoute.size()) {
+                stepEdges.push_back({report.alternativeRoute[i], report.alternativeRoute[i + 1]});
+            }
+        }
+        mapWidget->setPath(path);
+    } else if (mode == 6) {
+        // Mode 7: Bus Recommendations
+        recs = busMgr.recommendBuses(srcId, destId, graph);
+        logText += "Bus Fleet Timetable Recommendations:\r\n";
+        logText += QString("Trip: %1 -> %2\r\n")
+            .arg(QString::fromStdString(graph.getStop(srcId)->name))
+            .arg(QString::fromStdString(graph.getStop(destId)->name))
+            .toStdString();
+
+        if (!recs.empty()) {
+            path = recs[0].traversedStops;
+            mapWidget->setPath(path);
+
+            for (size_t i = 0; i < path.size(); ++i) {
+                stepNodes.push_back(path[i]);
+                stepColors.push_back(QColor(34, 195, 240));
+                if (i + 1 < path.size()) {
+                    stepEdges.push_back({path[i], path[i + 1]});
+                }
+            }
+        }
     }
 
-    // Bus recommendations for the trip
-    recs = busMgr.recommendBuses(srcId, destId, graph);
+    if (mode != 6) {
+        recs = busMgr.recommendBuses(srcId, destId, graph);
+    }
 
     updateMetricsAndCards(path, recs, logText);
 
     if (startAnimation) {
-        mapWidget->startStepAnimation(visitOrder, animEdges);
+        mapWidget->startStepAnimation(stepNodes, stepEdges, stepColors);
     }
 }
 
@@ -750,3 +868,4 @@ void QtMainWindow::updateMetricsAndCards(const std::vector<int>& path,
     // 3. Update Log Text
     textLog->setText(QString::fromStdString(logText));
 }
+
