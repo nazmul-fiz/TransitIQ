@@ -17,7 +17,11 @@
                 "src/DataManager.cpp",
                 "src/UI.cpp",
                 "src/App.cpp",
+                "src/GUIApp.cpp",
                 "src/main.cpp",
+                "-mwindows",
+                "-lcomctl32",
+                "-lgdi32",
                 "-o",
                 "${workspaceFolder}/TransitIQ.exe"
             ],
@@ -31,7 +35,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Compile TransitIQ using MinGW g++ C++17"
+            "detail": "Compile TransitIQ Visual GUI using MinGW g++ C++17"
         },
         {
             "type": "shell",
@@ -62,4 +66,3 @@
         }
     ]
 }
-

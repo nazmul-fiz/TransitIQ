@@ -1,35 +1,83 @@
-# TransitIQ – Smart Bus Network Explorer & Journey Finder
+# TransitIQ – Smart Bus Network Explorer & Journey Finder (Visual GUI Edition)
 
-TransitIQ is a modern, modular **C++17 console-based bus transport simulator** modeled after Dhaka's public transit network (featuring 23 bus stops, 30 major road corridors, and 8 prominent bus lines).
+TransitIQ is a modern, interactive **C++17 GUI & Console bus transport simulator** modeled after Dhaka's public transit network (23 bus stops, 30 major road corridors, and 8 prominent bus lines).
 
-Designed specifically for academic coursework, this project strictly demonstrates **Breadth-First Search (BFS)** and **Depth-First Search (DFS)** as its primary algorithms, avoiding shortest-path algorithms like Dijkstra to keep the algorithmic focus clear, rigorous, and easy to explain during viva presentations.
+Designed specifically for academic coursework and project presentation, it strictly demonstrates **Breadth-First Search (BFS)** and **Depth-First Search (DFS)** as its primary algorithms. No Dijkstra or weighted shortest-path algorithms are used, keeping the project authentic, visual, and easy to explain.
 
 ---
 
-## 🌟 Key Features
+## 🖥️ Visual Graphical Interface (Zero Manual Typing)
+
+The application provides a **native graphical desktop interface (GUI)**:
+* **Interactive Dhaka Transit Map Canvas**:
+  * Real-time 2D visualization of Dhaka's bus transit network across North, Central, West, and South zones.
+  * Stops are rendered as glowing circular nodes labeled with stop names.
+  * Roads are rendered as sleek corridors.
+  * **Selected Journey Route**: Lights up with thick vibrant emerald green lines (`#10b981`) and directional arrows.
+  * **Blocked Roads**: Rendered as red dashed lines with a ⛔ roadblock indicator.
+  * **Start / Boarding Stop**: Highlighted in golden-yellow (`#f59e0b`) with a pulse ring.
+  * **Destination / Alight Stop**: Highlighted in bright cyan (`#06b6d4`).
+* **Dropdown Selection (No Keyboard Input Required)**:
+  * **Boarding / Origin Stop**: Select from a dropdown list of all 23 Dhaka stops.
+  * **Destination Stop**: Select from a dropdown list.
+  * **Algorithm / Exploration Mode**:
+    1. 🧭 **BFS Journey Finder**: Minimum connections route between source and destination.
+    2. 🔄 **BFS Bus Transfer Finder**: Minimum vehicle changes route across bus lines.
+    3. 🌐 **BFS Reachability Explorer**: Hop-by-hop expansion from starting location.
+    4. 🔍 **DFS Network Explorer**: Deep corridor walk trace and recursion visualization.
+    5. 🏝️ **DFS Connected Components & Island Detection**: Identifies isolated stops.
+    6. ⚠️ **DFS Road Closure & Bottleneck Impact**: Simulates closing corridors and detects critical bridges.
+    7. 🚌 **Bus Recommendation System**: Ranks Top 3 direct/transfer buses with fare and travel time.
+  * **Simulate Road Block / Closure**: Dropdown list to simulate closing corridors (e.g. *Farmgate $\leftrightarrow$ Karwan-Bazar*, *Airport $\leftrightarrow$ Khilkhet*, *Kuril $\leftrightarrow$ Banani*, etc.) to watch BFS dynamically calculate detours!
+* **Step-by-Step Animation (`▶️ Animate Steps`)**:
+  * Visualizes the BFS queue frontier or DFS recursion stack step-by-step with an animated timer on the map.
+* **Side Panel Summary & Trace**:
+  * Instant readout of total stops, transit hops, estimated distance (km), estimated time (mins), and bus recommendation comparison cards.
+
+---
+
+## 🌟 Core Algorithmic Implementations
 
 ### 1. BFS – Journey Finder & Route Optimization
-* **Minimum Connections Route**: Finds the route with the fewest intermediate stops/hops between any two locations using standard level-by-level BFS queue expansion.
-* **Dynamic Road Closure Bypass**: When a road is blocked (e.g., due to construction or VIP movement), BFS dynamically identifies the shortest detour/alternative corridor.
-* **Hop-based Reachability Explorer**: Explores all transit stops reachable from an origin within $k$ connections or overall.
-* **Minimum Bus Transfers Model**: Evaluates the bus route transit network using BFS where each state transition represents boarding a bus line, guaranteeing the journey with the minimum number of vehicle switches.
-* **Animated Queue Visualization**: Renders FIFO queue pops, pushes, and frontier changes in real time with step-by-step color-coded feedback.
+* **Minimum Connections Route**: Uses `std::queue<int>` to explore level-by-level. In an unweighted transit graph where each road is 1 hop, BFS mathematically guarantees the route with the **minimum number of intermediate stops** in $\mathcal{O}(V + E)$ time.
+* **Dynamic Road Closure Bypass**: When a road is blocked, BFS automatically avoids the blocked edge and discovers the bypass route.
+* **Minimum Bus Transfers Model**: Runs BFS across the transit network where states represent bus stops and transitions represent taking a bus line. Level 0 = origin, Level 1 = reachable with 1 bus (direct), Level 2 = reachable with 2 buses (1 transfer). The first time the destination is dequeued, it is guaranteed to have the **minimum number of bus changes/transfers**.
 
 ### 2. DFS – Network Explorer & Topology Analysis
 * **Corridor Exploration Trace**: Follows transit corridors deeply until dead ends before backtracking, illustrating recursion depth and call-stack behavior.
 * **Connected Components & Island Detection**: Uses DFS to identify separated transit networks and isolate stops that have no operational connections.
-* **Road Closure & Bottleneck Impact Analysis**: Simulates closing any road and uses DFS to analyze if the corridor is a **critical bridge** (single point of failure) that splits the city into disconnected components.
+* **Road Closure & Bottleneck Impact Analysis**: Simulates closing a corridor $(u, v)$ and compares connected components before vs. after. If the number of components increases, the road is detected as a **critical bridge** (single point of failure).
 
 ### 3. Bus Recommendation & Comparison
 * **Top 3 Bus Recommendations**: Recommends direct or 1-transfer buses between two stops.
-* **Multifaceted Comparison**: Compares services by estimated travel time, total distance, intermediate stops, frequency, and base fare.
-* **Honest Algorithmic Framing**: Predefined bus timetable speeds and road corridor metrics are used for comparisons, clearly distinguishing route metrics from unweighted graph traversals.
+* **Predefined Comparisons**: Compares services by estimated travel time, total distance, intermediate stops, frequency, and base fare using the predefined timetable metrics of each bus corridor.
 
-### 4. Interactive Console Interface & Data Persistence
-* **Modern ANSI Color Palette**: Green for active routes, Red for blocked roads, Yellow for origin, Cyan for destination, and Magenta for transfer interchanges.
-* **ASCII Visual Maps**: Clear directional diagrams showing intermediate stops, road distances, and time estimates.
-* **Full CRUD Admin Menu**: Add, edit, or delete bus stops, road segments, and bus lines directly from the console.
-* **File Persistence**: All changes automatically synchronize with `data/stops.txt`, `data/roads.txt`, and `data/buses.txt`.
+---
+
+## 🚀 How to Run the Visual GUI
+
+### 1. Single Click (Recommended)
+Simply double-click:
+* **[TransitIQ.exe](file:///d:/New%20folder/Algo%20Project/TransitIQ.exe)** or **[TransitIQ_GUI.exe](file:///d:/New%20folder/Algo%20Project/TransitIQ_GUI.exe)**
+* Or **[Run_TransitIQ.bat](file:///d:/New%20folder/Algo%20Project/Run_TransitIQ.bat)**
+
+The interactive GUI window will immediately open!
+
+### 2. Optional Console Mode
+If you wish to run the animated console terminal mode instead:
+```powershell
+.\TransitIQ.exe --cli
+```
+
+### 3. In VS Code
+1. Open the project folder in VS Code.
+2. Press **`Ctrl + Shift + B`** to build.
+3. Launch with **`F5`** or run `./TransitIQ.exe`.
+
+### 4. Running Algorithm Verification Tests
+```powershell
+.\test_algorithms.exe
+```
 
 ---
 
@@ -41,9 +89,9 @@ d:/New folder/Algo Project/
 │   ├── tasks.json             # VS Code build and test tasks
 │   └── launch.json            # VS Code GDB debug configuration
 ├── data/
-│   ├── stops.txt              # Stop ID, name, and zone
-│   ├── roads.txt              # Direct road connections, distance (km), time (min)
-│   └── buses.txt              # Bus ID, name, type, frequency, fare, route stop IDs
+│   ├── stops.txt              # Stop ID, name, and zone (23 Dhaka stops)
+│   ├── roads.txt              # Physical road corridors, distance (km), time (min)
+│   └── buses.txt              # 8 bus services, frequencies, fares, routes
 ├── include/
 │   ├── Common.h               # ANSI colors, console configuration, and animation settings
 │   ├── Stop.h                 # Bus stop data model
@@ -53,6 +101,7 @@ d:/New folder/Algo Project/
 │   ├── BusManager.h           # Bus search & recommendation logic
 │   ├── DataManager.h          # File reading/writing & data persistence
 │   ├── UI.h                   # Visualizers, banners, and interactive prompts
+│   ├── GUIApp.h               # Win32 Graphical User Interface & Canvas header
 │   └── App.h                  # Application menu controller
 ├── src/
 │   ├── Common.cpp             # Windows ANSI initialization & sleep helpers
@@ -60,84 +109,21 @@ d:/New folder/Algo Project/
 │   ├── BusManager.cpp         # Route analysis & bus ranking
 │   ├── DataManager.cpp        # File I/O parser & default network builder
 │   ├── UI.cpp                 # Screen rendering & ASCII route maps
-│   ├── App.cpp                # Main menu and interactive workflows
-│   └── main.cpp               # Program entry point
+│   ├── GUIApp.cpp             # Interactive Dhaka map drawing & GUI controls
+│   ├── App.cpp                # Console application workflows
+│   └── main.cpp               # Program entry point (launches GUI or CLI)
 ├── tests/
 │   └── test_algorithms.cpp    # Automated test suite for all 7 algorithm requirements
 ├── build.bat                  # One-click Windows build and run batch file
+├── Run_TransitIQ.bat          # Desktop launch shortcut script
 ├── Makefile                   # Make build script
-└── README.md                  # Complete documentation and viva guide
+├── TransitIQ.exe              # Ready-to-click GUI executable
+└── TransitIQ_GUI.exe          # Dedicated GUI executable
 ```
 
 ---
 
-## 🚀 How to Compile and Run
+## 🌐 GitHub Repository
 
-### Option 1: Quick Command Line (MinGW g++)
-
-Open a terminal or PowerShell in the project directory and run:
-
-```bash
-g++ -std=c++17 -O2 -Wall -Wextra -Iinclude src/Common.cpp src/Graph.cpp src/BusManager.cpp src/DataManager.cpp src/UI.cpp src/App.cpp src/main.cpp -o TransitIQ.exe
-.\TransitIQ.exe
-```
-
-### Option 2: Using the One-Click Batch Script (Windows)
-
-Simply double-click `build.bat` or run in terminal:
-```cmd
-build.bat
-```
-
-### Option 3: In VS Code
-
-1. Open the project folder `d:\New folder\Algo Project` in VS Code.
-2. Press **`Ctrl + Shift + B`** to trigger the default build task (`Build TransitIQ (Release)`).
-3. Open the integrated terminal (`Ctrl + ~`) and launch `./TransitIQ.exe`.
-4. To run under the debugger, press **`F5`**.
-
-### Option 4: Running the Automated Verification Tests
-
-To verify all algorithms independently via assertions:
-```bash
-g++ -std=c++17 -Iinclude src/Common.cpp src/Graph.cpp src/BusManager.cpp src/DataManager.cpp src/UI.cpp tests/test_algorithms.cpp -o test_algorithms.exe
-.\test_algorithms.exe
-```
-
----
-
-## 🧠 Algorithmic Explanations (Viva / CSE Interview Guide)
-
-### Q1: Why use BFS for the Journey Finder instead of Dijkstra?
-* **Answer**: BFS expands layer by layer ($0, 1, 2, \dots$ hops) using a First-In, First-Out (`std::queue`). In an unweighted graph where each edge represents 1 transit connection, BFS is mathematically guaranteed to find the route with the **minimum number of connections (stop hops)** in $O(V + E)$ time. Dijkstra is designed for weighted shortest paths (e.g., minimizing exact meters or minutes); using BFS keeps the solution clean, optimal for minimizing vehicle boarding hops, and computationally efficient.
-
-### Q2: How does the "Minimum Bus Transfers" BFS model work?
-* **Answer**: In our bus-transfer model, a transit state is defined at each bus stop. When expanding from a stop, we examine all bus lines passing through it. In a single BFS step, taking that bus allows us to reach any stop along that line. Because BFS searches level by level (level 0 = 0 buses, level 1 = 1 bus / direct, level 2 = 2 buses / 1 transfer), the first time the destination is popped from the queue, it is mathematically guaranteed to have the minimum number of bus boardings/transfers!
-
-### Q3: How does DFS detect critical bridges and disconnected networks?
-* **Answer**: DFS explores paths deeply using recursion or a call stack. By running DFS from all unvisited vertices, we partition the vertices into distinct connected components. When a road $(u, v)$ is simulated as closed:
-  1. We count connected components before closing.
-  2. We temporarily block $(u, v)$ and recount components.
-  3. If the number of components increases, edge $(u, v)$ is a **bridge (bottleneck)**, meaning its failure partitions the city network into disconnected islands.
-
----
-
-##  Dhaka Sample Transit Network
-
-The simulator comes preloaded with 23 popular transit locations:
-* **North Zone**: Uttara, Airport, Khilkhet
-* **North-East & East Zone**: Kuril, Bashundhara, Badda, Rampura
-* **Central & Business**: Banani, Gulshan-2, Gulshan-1, Mohakhali, Farmgate, Karwan Bazar, Moghbazar, Malibagh
-* **West Zone**: Mirpur-10, Mirpur-1, Gabtoli, Dhanmondi
-* **South Zone**: Shahbagh, New Market, Motijheel, Sayedabad
-
-Preloaded bus lines include:
-1. **BRTC Articulated** (AC Express: Uttara $\leftrightarrow$ Motijheel via Farmgate)
-2. **Raida Enterprise** (Semi-Seating: Uttara $\leftrightarrow$ Sayedabad via Kuril, Badda, Rampura)
-3. **Bikolpo Auto** (Regular: Mirpur-10 $\leftrightarrow$ Motijheel)
-4. **Turag Transport** (Regular: Uttara $\leftrightarrow$ New Market)
-5. **Anabil Super** (Regular: Kuril $\leftrightarrow$ Sayedabad)
-6. **Alif Paribahan** (Semi-Seating: Mirpur-10 $\leftrightarrow$ Rampura via Gulshan)
-7. **Shikor Paribahan** (Regular: Gabtoli $\leftrightarrow$ Motijheel via Dhanmondi)
-8. **Winner City Service** (Regular: Mirpur-10 $\leftrightarrow$ Motijheel via Moghbazar)
-
+* **Repository**: [https://github.com/nazmul-fiz/TransitIQ.git](https://github.com/nazmul-fiz/TransitIQ.git)
+* **Branch**: `main`
